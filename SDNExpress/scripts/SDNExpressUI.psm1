@@ -293,9 +293,16 @@ function SDNExpressUI {
                 <StackPanel Margin="0,10"/>
                 <StackPanel Orientation="Horizontal" Margin="0,2">
                     <Label Content="Hyper-V Hosts" Margin="10,0,0,0" HorizontalAlignment="Left" Width="150"/>
-                    <TextBox Name="txtHyperVHosts" Width="300" Height="160" TextWrapping="Wrap" AcceptsReturn="True"  VerticalScrollBarVisibility="Visible" VerticalContentAlignment="Top"/>
+                    <TextBox Name="txtHyperVHosts" Width="300" Height="140" TextWrapping="Wrap" AcceptsReturn="True"  VerticalScrollBarVisibility="Visible" VerticalContentAlignment="Top"/>
                 </StackPanel>
                 <StackPanel Margin="0,10"/>
+				<StackPanel Orientation="Horizontal" Margin="0,2">
+                    <Label Content="Virtual Switch Name" Margin="10,0"/>
+                </StackPanel>
+				<StackPanel Orientation="Horizontal" Margin="0,2">
+                    <Label Content="Switch" Margin="10,0,0,0" HorizontalAlignment="Left" Width="150"/>
+                    <TextBox Name="txtSwitchName" Text="" Width="150"/>
+                </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,2">
                     <Label Content="Host Credentials" Margin="10,0"/>
                 </StackPanel>
@@ -817,6 +824,7 @@ $ValidatePanel5 = {
     $results = @()
     $results += ValidateNotBlank $txtRESTName "This field must contain the fully qualified domain name to be assigned to the REST interface of the network controller."
     $results += ValidateNotBlank $txtHyperVHosts "This field must contain a list of Hyper-V hosts to be added to the network controller.  They must be separated by newlines, commas or semicolons."
+	$results += ValidateNotBlank $txtSwitchName "This field must contain a Switch."
     $results += ValidateNotBlank $txtHostUsername "This domain and username is used by the network controller to access the Hyper-V hosts and SDN gateways running on the hsots.  Example: CONTOSO\AlYoung"
     $results += ValidatePassword $txtHostPassword 
 
@@ -968,7 +976,8 @@ param (
         $nextIP = $txtManagementIPPoolStart.Text
         $nextPA = $txtPAIPPoolStart.Text
         $nextMAC = $txtMacPoolStart.Text
-    
+		
+		$ConfigData.SwitchName = $txtSwitchName.Text
         $ConfigData.NCs = @()
         $ConfigData.NCs += [ordered] @{ComputerName="$($txtVMNamePrefix.Text)NC01"; HostName=$hosts[$nexthost]; ManagementIP=$nextIP; MACAddress=$nextMac}
     

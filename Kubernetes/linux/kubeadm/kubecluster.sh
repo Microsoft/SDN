@@ -69,7 +69,12 @@ function DownloadKubernetes()
 function InstallKubeConfig()
 {
 	mkdir -p $HOME/.kube
-	cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+	# When joining the cluster, kubeadm join is not copying the kube config. So copy kubelet.conf
+	if [[ ! -z $join ]]; then
+		cp -i /etc/kubernetes/kubelet.conf $HOME/.kube/config
+	else
+		cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+	fi
 	chown --reference=$HOME $HOME/.kube/config
 }
 
@@ -283,18 +288,23 @@ if [[ $init -gt "0" ]]; then
 		echo "Joining the node to cluster using $join"
 		kubeadm join $join
 		[ $? -ne 0 ] && echo "Failed to join the cluster" && exit
+		# not sure, if this is needed only for master node. So, adding for worker node as well.
+		sudo sysctl net.bridge.bridge-nf-call-iptables=1
+		# Explicitly copy the kube config to ensure the worker node can communicate with master.
+		InstallKubeConfig
 	else
 		if kubeadm init --pod-network-cidr=${CLUSTER_CIDR} --service-cidr=${SERVICE_CIDR}; then
 			InstallKubeConfig
+			# Deploy Network Plugins
+			# This should only be run on the control-plane, when initializing.
+			InstallNetworkPlugins $cni $NetworkPlugin $WorkingDir $CLUSTER_CIDR
+			kubectl patch ds/kube-proxy --patch "$(cat $WorkingDir/node-selector-patch.yml)" -n=kube-system
 			echo "Successfully deployed the cluster"
 		else
 			echo "Failed to init kubeadm"
 			exit;
 		fi
 	fi
-	# Deploy Network Plugins
-	InstallNetworkPlugins $cni $NetworkPlugin $WorkingDir $CLUSTER_CIDR
-	kubectl patch ds/kube-proxy --patch "$(cat $WorkingDir/node-selector-patch.yml)" -n=kube-system
 else
   kubeadm reset
   iptables -F && iptables -t nat -F && iptables -t mangle -F && iptables -X

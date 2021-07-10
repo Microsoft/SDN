@@ -66,7 +66,7 @@ function ReadKubeclusterConfig($ConfigFile)
     if (!$Global:ClusterConfiguration.Kubernetes.Source)
     {
         $Global:ClusterConfiguration.Kubernetes | Add-Member -MemberType NoteProperty -Name Source -Value @{
-            Release = "1.14.0";
+            Release = "1.15.5";
         }
     }
     if (!$Global:ClusterConfiguration.Kubernetes.Master)
@@ -110,6 +110,18 @@ function ReadKubeclusterConfig($ConfigFile)
             Images = @{
                 Nanoserver = "mcr.microsoft.com/windows/nanoserver:1809";
                 ServerCore = "mcr.microsoft.com/windows/servercore:ltsc2019";
+            }
+        }
+    }
+
+    if ($Global:ClusterConfiguration.Cri.Name -eq "containerd")
+    {
+        if (!$Global:ClusterConfiguration.Cri.DownloadUrls) {
+            $Global:ClusterConfiguration.Cri | Add-Member -MemberType NoteProperty -Name DownloadUrls -Value @{
+                ContainerD = "https://github.com/nagiesek/cri/releases/download/windows/containerd.exe";
+                Ctr = "https://github.com/nagiesek/cri/releases/download/windows/ctr.exe";
+                ContainerdShim = "https://github.com/nagiesek/cri/releases/download/windows/containerd-shim-runhcs-v1.exe";
+                # RunHcs - not needed?
             }
         }
     }

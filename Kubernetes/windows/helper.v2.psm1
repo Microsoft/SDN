@@ -413,6 +413,7 @@ function DownloadCniBinaries($NetworkMode, $CniPath)
 
     if ($Global:Cri -eq "containerd")
     {
+        # TODO: containerd - URL parameters needed
         DownloadFile -Url "https://github.com/microsoft/windows-container-networking/raw/master/example/flannel_$NetworkMode.conf" -Destination $CniPath\config\cni.conf
         DownloadFile  "https://github.com/microsoft/windows-container-networking/releases/download/v0.2.0/windows-container-networking-cni-amd64-v0.2.0.zip" -Destination "$env:TEMP\windows-container-networking-cni-amd64-v0.2.0.zip"
         Expand-Archive -Path "$env:TEMP\windows-container-networking-cni-amd64-v0.2.0.zip" -DestinationPath $CniPath -Force
@@ -773,18 +774,17 @@ Update-ContainerdCNIConfig
                 ]
               }
           }'
-              #Add-Content -Path $CNIConfig -Value $jsonSampleConfig
-          
-              $configJson =  ConvertFrom-Json $jsonSampleConfig
-              $configJson.name = $NetworkName
-              $configJson.delegate.type = "sdnbridge"
 
-              $configJson.delegate.policies[0].Value.ExceptionList[0] = $clusterCIDR
-              $configJson.delegate.policies[0].Value.ExceptionList[1] = $serviceCIDR
-              $configJson.delegate.policies[0].Value.ExceptionList[2] = $Global:ManagementSubnet
-          
-              $configJson.delegate.policies[1].Value.DestinationPrefix  = $serviceCIDR
-              $configJson.delegate.policies[2].Value.DestinationPrefix  = ($Global:ManagementIp + "/32")
+        $configJson =  ConvertFrom-Json $jsonSampleConfig
+        $configJson.name = $NetworkName
+        $configJson.delegate.type = "sdnbridge"
+
+        $configJson.delegate.AdditionalArgs[0].Value.Settings.Exceptions[0] = $clusterCIDR
+        $configJson.delegate.AdditionalArgs[0].Value.Settings.Exceptions[1] = $serviceCIDR
+        $configJson.delegate.AdditionalArgs[0].Value.Settings.Exceptions[2] = $Global:ManagementSubnet
+    
+        $configJson.delegate.AdditionalArgs[1].Value.Settings.DestinationPrefix  = $serviceCIDR
+        $configJson.delegate.AdditionalArgs[2].Value.Settings.DestinationPrefix  = ($Global:ManagementIp + "/32")
     }
     elseif ($NetworkMode -eq "overlay")
     {
@@ -808,17 +808,18 @@ Update-ContainerdCNIConfig
                 ]
               }
           }'
-              #Add-Content -Path $CNIConfig -Value $jsonSampleConfig
-          
-              $configJson =  ConvertFrom-Json $jsonSampleConfig
-              $configJson.name = $NetworkName
-              $configJson.type = "flannel"
-              $configJson.delegate.type = "sdnoverlay"
-
-              $configJson.delegate.Policies[0].Value.Exceptions[0] = $clusterCIDR
-              $configJson.delegate.Policies[0].Value.Exceptions[1] = $serviceCIDR
-          
-              $configJson.delegate.Policies[1].Value.DestinationPrefix  = $serviceCIDR
+        #Add-Content -Path $CNIConfig -Value $jsonSampleConfig
+    
+        $configJson =  ConvertFrom-Json $jsonSampleConfig
+        $configJson.name = $NetworkName
+        $configJson.type = "flannel"
+        $configJson.delegate.type = "sdnoverlay"
+        
+        #TODO containerd - schema bad
+        $configJson.delegate.Policies[0].Value.Exceptions[0] = $clusterCIDR
+        $configJson.delegate.Policies[0].Value.Exceptions[1] = $serviceCIDR
+    
+        $configJson.delegate.Policies[1].Value.DestinationPrefix  = $serviceCIDR
     }
     
     if (Test-Path $CNIConfig) {
@@ -867,6 +868,7 @@ function GetKubeletArguments()
         [parameter(Mandatory = $false)] [switch] $IsContainerd = $false
     )
 
+    # TODO: containerd - windows 1903+ - parameterize pod-infra-container-image and default to premade image on MCR
     $kubeletArgs = @(
         $((get-command kubelet.exe -ErrorAction Stop).Source),
         "--node-labels=node-role.kubernetes.io/agent=,kubernetes.io/role=agent",
@@ -874,7 +876,6 @@ function GetKubeletArguments()
         '--v=6',
         '--pod-infra-container-image=kubeletwin/pause',
         '--resolv-conf=""',
-        '--allow-privileged=true',
         '--enable-debugging-handlers', # Comment for Config
         "--cluster-dns=$KubeDnsServiceIp", # Comment for Config
         '--cluster-domain=cluster.local', # Comment for Config
@@ -1004,6 +1005,7 @@ function InstallKubelet()
     CreateDirectory $logDir 
     $log = [io.Path]::Combine($logDir, "kubeletsvc.log");
 
+    # TODO - move away from service wrapper
     $kubeletArgs = GetKubeletArguments -KubeConfig $KubeConfig  `
                     -KubeletConfig $kubeletConfig `
                     -CniDir $CniDir -CniConf $CniConf   `
@@ -1065,6 +1067,7 @@ function InstallKubeProxy()
     CreateDirectory $logDir
     $log = [io.Path]::Combine($logDir, "kubproxysvc.log");
 
+    # TODO - move away from service wrapper
     Write-Host "Installing Kubeproxy Service"
     $proxyArgs = GetProxyArguments -KubeConfig $KubeConfig  `
                     -KubeProxyConfig $kubeproxyConfig `
@@ -1341,16 +1344,17 @@ function RegisterContainerDService()
     $cdbinary = Join-Path $Global:BaseDir\$containerdPath containerd.exe
     $svc = Get-Service -Name containerd -ErrorAction SilentlyContinue
 
-    $containerddArgs = @(
+    $containerdArgs = @(
         "$cdbinary",
         "-config $Global:BaseDir\$ContainerdPath\config.toml"
     )
 
     $service = Get-Service ContainerD -ErrorAction SilentlyContinue
+    # TODO - containerd - move away from service wrapper
     if (!$service)
     {
         $nodeName = (hostname).ToLower()
-        CreateService -ServiceName ContainerD -CommandLine $containerddArgs `
+        CreateService -ServiceName ContainerD -CommandLine $containerdArgs `
             -LogFile "$log"    
     }
 }
@@ -1388,7 +1392,8 @@ function InstallContainerD()
     $CrictlVersion = "v1.14.0",
     $RunhcsVersion = "v0.8.6",
     $DestinationPath = "containerd",
-    $linuxSandboxImage = "k8s.gcr.io/pause:3.1"
+    $linuxSandboxImage = "k8s.gcr.io/pause:3.1",
+    [Parameter(Mandatory=$true)] $downloadUrls
     )
 
     md $Global:BaseDir\$DestinationPath -ErrorAction SilentlyContinue
@@ -1401,19 +1406,21 @@ function InstallContainerD()
     $cmd = get-command containerd.exe -ErrorAction SilentlyContinue
     if (!$cmd)
     {
-        DownloadFile https://github.com/nagiesek/cri/releases/download/windows/containerd.exe -Destination "$Global:BaseDir\$DestinationPath\containerd.exe"
+        DownloadFile $downloadUrls.ContainerD -Destination "$Global:BaseDir\$DestinationPath\containerd.exe"
     }
 
     $cmd = get-command ctr.exe -ErrorAction SilentlyContinue
     if (!$cmd)
     {
-        DownloadFile https://github.com/nagiesek/cri/releases/download/windows/ctr.exe -Destination "$Global:BaseDir\$DestinationPath\ctr.exe"
+        DownloadFile $downloadUrls.Ctr -Destination "$Global:BaseDir\$DestinationPath\ctr.exe"
     }
 
     $cmd = get-command crictl.exe -ErrorAction SilentlyContinue
     if (!$cmd)
     {
         DownloadAndExtractTarGz https://github.com/kubernetes-sigs/cri-tools/releases/download/$CrictlVersion/crictl-$CrictlVersion-windows-amd64.tar.gz $Global:BaseDir\$DestinationPath
+        #TODO - containerd - move to generating template with containerd.exe config default instead of downloading it.
+        #TODO - containerd - also align with runtimeHandlers used in test passes
         DownloadFile "https://github.com/nagiesek/cri/releases/download/windows/config.toml"  -Destination "$Global:BaseDir\$DestinationPath\config.toml"
         (Get-Content -Path "$Global:BaseDir\$DestinationPath\config.toml" -Raw).
             Replace('<INSTALLDIR>', $Global:BaseDir.Replace('\', '\\')).
@@ -1429,14 +1436,15 @@ function InstallContainerD()
     $cmd = get-command containerd-shim-runhcs-v1.exe -ErrorAction SilentlyContinue
     if (!$cmd)
     {
-        DownloadFile https://github.com/nagiesek/cri/releases/download/windows/containerd-shim-runhcs-v1.exe -Destination "$Global:BaseDir\$DestinationPath\containerd-shim-runhcs-v1.exe"
+        DownloadFile $downloadUrls.ContainerdShim -Destination "$Global:BaseDir\$DestinationPath\containerd-shim-runhcs-v1.exe"
     }
 
-    $cmd = get-command runhcs.exe -ErrorAction SilentlyContinue
-    if (!$cmd)
-    {
-        DownloadFile https://github.com/microsoft/hcsshim/releases/download/v0.8.6/runhcs.exe -Destination "$Global:BaseDir\$DestinationPath\runhcs.exe"
-    }
+    # TODO: containerd - remove unneeded code
+    # $cmd = get-command runhcs.exe -ErrorAction SilentlyContinue
+    # if (!$cmd)
+    # {
+    #     DownloadFile https://github.com/microsoft/hcsshim/releases/download/v0.8.6/runhcs.exe -Destination "$Global:BaseDir\$DestinationPath\runhcs.exe"
+    # }
 }
 
 
@@ -1526,7 +1534,8 @@ function InstallDockerImages()
             throw "Failed to pull $Global:NanoserverImage"
         }
     }
-    docker tag $Global:NanoserverImage mcr.microsoft.com/windows/nanoserver:latest
+    # TODO - container - windows 1903 - fix or remove as part of multiple OS version support
+    #docker tag $Global:NanoserverImage mcr.microsoft.com/windows/nanoserver:latest
     if (!(docker images $Global:ServercoreImage -q))
     {
         docker pull $Global:ServercoreImage
@@ -1534,8 +1543,9 @@ function InstallDockerImages()
             throw "Failed to pull $Global:ServercoreImage"
         }
     }
-    docker tag $Global:ServercoreImage mcr.microsoft.com/windows/servercore:latest
-    docker tag $Global:ServercoreImage mcr.microsoft.com/windows/servercore:1809
+    # TODO - container - windows 1903 - fix or remove as part of multiple OS version support
+    #docker tag $Global:ServercoreImage mcr.microsoft.com/windows/servercore:latest
+    # docker tag $Global:ServercoreImage mcr.microsoft.com/windows/servercore:1809
 }
 
 function InstallPauseImage()
@@ -1547,7 +1557,8 @@ function InstallPauseImage()
         Write-Host "No infrastructure container image found. Building kubeletwin/pause image"
         pushd
         cd $Global:BaseDir
-        DownloadFile -Url "https://github.com/$Global:GithubSDNRepository/raw/$Global:GithubSDNBranch/Kubernetes/windows/Dockerfile" -Destination $Global:BaseDir\Dockerfile
+        # TODO - container - windows 1903 - fix or remove as part of multiple OS version support
+        DownloadFile -Url "https://raw.githubusercontent.com/kubernetes-sigs/sig-windows-tools/master/cmd/wincat/Dockerfile" -Destination $Global:BaseDir\Dockerfile
         docker build -t kubeletwin/pause .
         popd
     }
@@ -1696,7 +1707,7 @@ function InstallCRI($cri)
 
         "containerd" {
 
-            InstallContainerD 
+            InstallContainerD -downloadUrls $Global:ClusterConfiguration.Cri.DownloadUrls
             InstallLcow
             UpdateCrictlConfig
             RegisterContainerDService

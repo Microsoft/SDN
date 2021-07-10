@@ -618,7 +618,20 @@ function createLogicalNetwork
     
 	if($ManagedByNC -eq $true)
 	{
-		$NetController = Get-SCVirtualSwitchExtensionManager -All | where{$_.Name -eq "Network Controller"}
+		#Wait for issue where creation can run before network controller returns
+		$NetController = $null
+		$i=1
+		while (!$NetController) {
+			sleep 10
+			LogWrite "Obtaining Network Controller for logical network creation - attempt $i"
+			$NetController = Get-SCVirtualSwitchExtensionManager -All | where {$_.Name -eq "Network Controller"}
+			$i++
+			if ($i -gt 20) { 
+				LogWrite "Error obtaining network controller"
+				break 
+			}
+		}
+		
 		if($ln.Name -eq "PublicVIP")
 		{
 		    $LogicalNetworkCreated = New-SCLogicalNetwork -Name $ln.Name -LogicalNetworkDefinitionIsolation $false -EnableNetworkVirtualization $false -UseGRE $false -IsPVLAN $false -NetworkController $NetController -PublicIPNetwork

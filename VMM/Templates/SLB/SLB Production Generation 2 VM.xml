@@ -194,6 +194,40 @@
           <vmmst:RestartOnRetry>false</vmmst:RestartOnRetry>
           <vmmst:DeploymentOrder>1</vmmst:DeploymentOrder>
         </vmmst:ScriptCommand>
+		<vmmst:ScriptCommand vmmst:scriptType="PreInstall">
+          <vmmst:Executable>cmd.exe</vmmst:Executable>
+          <vmmst:Parameters>/q /c xcopy * c:\MuxInstall\NCCertificate\</vmmst:Parameters>
+          <vmmst:CustomResourceRef>ovf:/file/NCCertificate.cr</vmmst:CustomResourceRef>
+          <vmmst:RunAsAccountRef>@localAdmin@</vmmst:RunAsAccountRef>
+          <vmmst:TimeoutSeconds>120</vmmst:TimeoutSeconds>
+          <vmmst:PersistStandardOutputPath>c:\muxcert\output.log</vmmst:PersistStandardOutputPath>
+          <vmmst:PersistStandardErrorPath>c:\muxcert\error.log</vmmst:PersistStandardErrorPath>
+          <vmmst:StandardErrorRegex>.+</vmmst:StandardErrorRegex>
+          <vmmst:ExitCodeRegex>[1-9][0-9]*</vmmst:ExitCodeRegex>
+          <vmmst:ErrorPolicy>FailOnMatch</vmmst:ErrorPolicy>
+          <vmmst:RebootExitCodeRegex>{1641}|{3010}|{3011}</vmmst:RebootExitCodeRegex>
+          <vmmst:RestartScriptOnExitCodeReboot>false</vmmst:RestartScriptOnExitCodeReboot>
+          <vmmst:AlwaysReboot>false</vmmst:AlwaysReboot>
+          <vmmst:RestartOnRetry>true</vmmst:RestartOnRetry>
+          <vmmst:DeploymentOrder>2</vmmst:DeploymentOrder>
+        </vmmst:ScriptCommand>
+		<vmmst:ScriptCommand vmmst:scriptType="PreInstall">
+          <vmmst:Executable>%WINDIR%\System32\WindowsPowerShell\v1.0\powershell.exe</vmmst:Executable>
+          <vmmst:Parameters>-NonInteractive -NoProfile -ExecutionPolicy Unrestricted -Command "&amp; {.\WaitForNetwork.ps1; exit $LastExitCode}"</vmmst:Parameters>
+          <vmmst:CustomResourceRef>ovf:/file/EdgeDeployment.cr</vmmst:CustomResourceRef>
+          <vmmst:RunAsAccountRef>@LocalAdmin@</vmmst:RunAsAccountRef>
+          <vmmst:TimeoutSeconds>2400</vmmst:TimeoutSeconds>
+          <vmmst:PersistStandardOutputPath>C:\mux\WaitForNetwork.log</vmmst:PersistStandardOutputPath>
+          <vmmst:PersistStandardErrorPath>C:\mux\WaitForNetwork.err</vmmst:PersistStandardErrorPath>
+          <vmmst:StandardErrorRegex>.+</vmmst:StandardErrorRegex>
+          <vmmst:ExitCodeRegex>[1-9][0-9]*</vmmst:ExitCodeRegex>
+          <vmmst:ErrorPolicy>FailOnMatch</vmmst:ErrorPolicy>
+          <vmmst:RebootExitCodeRegex>{1641}|{3010}|{3011}</vmmst:RebootExitCodeRegex>
+          <vmmst:RestartScriptOnExitCodeReboot>false</vmmst:RestartScriptOnExitCodeReboot>
+          <vmmst:AlwaysReboot>false</vmmst:AlwaysReboot>
+          <vmmst:RestartOnRetry>false</vmmst:RestartOnRetry>
+          <vmmst:DeploymentOrder>3</vmmst:DeploymentOrder>
+        </vmmst:ScriptCommand>		
         <vmmst:ScriptCommand vmmst:scriptType="PreInstall">
           <vmmst:Executable>cmd.exe</vmmst:Executable>
           <vmmst:Parameters>/q /c ProcessCertificate.cmd @SelfSignedConfiguration@</vmmst:Parameters>
@@ -211,24 +245,7 @@
           <vmmst:RestartScriptOnExitCodeReboot>false</vmmst:RestartScriptOnExitCodeReboot>
           <vmmst:AlwaysReboot>false</vmmst:AlwaysReboot>
           <vmmst:RestartOnRetry>true</vmmst:RestartOnRetry>
-          <vmmst:DeploymentOrder>3</vmmst:DeploymentOrder>
-        </vmmst:ScriptCommand>
-        <vmmst:ScriptCommand vmmst:scriptType="PreInstall">
-          <vmmst:Executable>cmd.exe</vmmst:Executable>
-          <vmmst:Parameters>/q /c xcopy * c:\MuxInstall\NCCertificate\</vmmst:Parameters>
-          <vmmst:CustomResourceRef>ovf:/file/NCCertificate.cr</vmmst:CustomResourceRef>
-          <vmmst:RunAsAccountRef>@localAdmin@</vmmst:RunAsAccountRef>
-          <vmmst:TimeoutSeconds>120</vmmst:TimeoutSeconds>
-          <vmmst:PersistStandardOutputPath>c:\muxcert\output.log</vmmst:PersistStandardOutputPath>
-          <vmmst:PersistStandardErrorPath>c:\muxcert\error.log</vmmst:PersistStandardErrorPath>
-          <vmmst:StandardErrorRegex>.+</vmmst:StandardErrorRegex>
-          <vmmst:ExitCodeRegex>[1-9][0-9]*</vmmst:ExitCodeRegex>
-          <vmmst:ErrorPolicy>FailOnMatch</vmmst:ErrorPolicy>
-          <vmmst:RebootExitCodeRegex>{1641}|{3010}|{3011}</vmmst:RebootExitCodeRegex>
-          <vmmst:RestartScriptOnExitCodeReboot>false</vmmst:RestartScriptOnExitCodeReboot>
-          <vmmst:AlwaysReboot>false</vmmst:AlwaysReboot>
-          <vmmst:RestartOnRetry>true</vmmst:RestartOnRetry>
-          <vmmst:DeploymentOrder>2</vmmst:DeploymentOrder>
+          <vmmst:DeploymentOrder>4</vmmst:DeploymentOrder>
         </vmmst:ScriptCommand>
         <vmmst:ScriptCommand vmmst:scriptType="PreInstall">
           <vmmst:Executable>cmd.exe</vmmst:Executable>
@@ -247,7 +264,7 @@
           <vmmst:RestartScriptOnExitCodeReboot>false</vmmst:RestartScriptOnExitCodeReboot>
           <vmmst:AlwaysReboot>false</vmmst:AlwaysReboot>
           <vmmst:RestartOnRetry>false</vmmst:RestartOnRetry>
-          <vmmst:DeploymentOrder>4</vmmst:DeploymentOrder>
+          <vmmst:DeploymentOrder>5</vmmst:DeploymentOrder>
         </vmmst:ScriptCommand>
       </ovf:Section>
       <ovf:Section xsi:type="vmmst:OperatingSystemUnattendedInstallSection_Type">

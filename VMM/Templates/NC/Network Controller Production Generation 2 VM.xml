@@ -248,6 +248,23 @@ You can also enter a REST IP Address in CIDR notation if all NC nodes are placed
           <vmmst:RestartOnRetry>true</vmmst:RestartOnRetry>
           <vmmst:DeploymentOrder>3</vmmst:DeploymentOrder>
         </vmmst:ScriptCommand>
+		<vmmst:ScriptCommand vmmst:scriptType="PreInstall">
+          <vmmst:Executable>%WINDIR%\System32\WindowsPowerShell\v1.0\powershell.exe</vmmst:Executable>
+          <vmmst:Parameters>-NonInteractive -NoProfile -ExecutionPolicy Unrestricted -Command "&amp; {.\WaitForNetwork.ps1; exit $LastExitCode}"</vmmst:Parameters>
+          <vmmst:CustomResourceRef>ovf:/file/NCSetup.cr</vmmst:CustomResourceRef>
+          <vmmst:RunAsAccountRef>@LocalAdmin@</vmmst:RunAsAccountRef>
+          <vmmst:TimeoutSeconds>2400</vmmst:TimeoutSeconds>
+          <vmmst:PersistStandardOutputPath>C:\NCInstall\WaitForNetwork.log</vmmst:PersistStandardOutputPath>
+          <vmmst:PersistStandardErrorPath>C:\NCInstall\WaitForNetwork.err</vmmst:PersistStandardErrorPath>
+          <vmmst:StandardErrorRegex>.+</vmmst:StandardErrorRegex>
+          <vmmst:ExitCodeRegex>[1-9][0-9]*</vmmst:ExitCodeRegex>
+          <vmmst:ErrorPolicy>FailOnMatch</vmmst:ErrorPolicy>
+          <vmmst:RebootExitCodeRegex>{1641}|{3010}|{3011}</vmmst:RebootExitCodeRegex>
+          <vmmst:RestartScriptOnExitCodeReboot>false</vmmst:RestartScriptOnExitCodeReboot>
+          <vmmst:AlwaysReboot>false</vmmst:AlwaysReboot>
+          <vmmst:RestartOnRetry>false</vmmst:RestartOnRetry>
+          <vmmst:DeploymentOrder>4</vmmst:DeploymentOrder>
+        </vmmst:ScriptCommand>
         <vmmst:ScriptCommand vmmst:scriptType="PreInstall">
           <vmmst:Executable>%WINDIR%\System32\WindowsPowerShell\v1.0\powershell.exe</vmmst:Executable>
           <vmmst:Parameters>-NonInteractive -NoProfile -ExecutionPolicy Unrestricted -Command "&amp; {.\ValidateParameters.ps1 '@ServiceVMComputerNames@' '@MgmtDomainAccountName@' '@MgmtSecurityGroup@' '@ClientSecurityGroup@' '@RestEndPoint@'; exit $LastExitCode}"</vmmst:Parameters>
@@ -263,7 +280,7 @@ You can also enter a REST IP Address in CIDR notation if all NC nodes are placed
           <vmmst:RestartScriptOnExitCodeReboot>false</vmmst:RestartScriptOnExitCodeReboot>
           <vmmst:AlwaysReboot>false</vmmst:AlwaysReboot>
           <vmmst:RestartOnRetry>true</vmmst:RestartOnRetry>
-          <vmmst:DeploymentOrder>4</vmmst:DeploymentOrder>
+          <vmmst:DeploymentOrder>5</vmmst:DeploymentOrder>
         </vmmst:ScriptCommand>
         <vmmst:ScriptCommand vmmst:scriptType="PreInstall">
           <vmmst:Executable>%WINDIR%\System32\WindowsPowerShell\v1.0\powershell.exe</vmmst:Executable>
@@ -280,7 +297,7 @@ You can also enter a REST IP Address in CIDR notation if all NC nodes are placed
           <vmmst:RestartScriptOnExitCodeReboot>false</vmmst:RestartScriptOnExitCodeReboot>
           <vmmst:AlwaysReboot>false</vmmst:AlwaysReboot>
           <vmmst:RestartOnRetry>true</vmmst:RestartOnRetry>
-          <vmmst:DeploymentOrder>5</vmmst:DeploymentOrder>
+          <vmmst:DeploymentOrder>6</vmmst:DeploymentOrder>
         </vmmst:ScriptCommand>
         <vmmst:ScriptCommand vmmst:scriptType="PreInstall">
           <vmmst:Executable>%WINDIR%\System32\WindowsPowerShell\v1.0\powershell.exe</vmmst:Executable>
@@ -297,7 +314,7 @@ You can also enter a REST IP Address in CIDR notation if all NC nodes are placed
           <vmmst:RestartScriptOnExitCodeReboot>false</vmmst:RestartScriptOnExitCodeReboot>
           <vmmst:AlwaysReboot>false</vmmst:AlwaysReboot>
           <vmmst:RestartOnRetry>true</vmmst:RestartOnRetry>
-          <vmmst:DeploymentOrder>6</vmmst:DeploymentOrder>
+          <vmmst:DeploymentOrder>7</vmmst:DeploymentOrder>
         </vmmst:ScriptCommand>
         <vmmst:ScriptCommand vmmst:scriptType="OnDeleteRest">
           <vmmst:Executable>%WINDIR%\System32\WindowsPowerShell\v1.0\powershell.exe</vmmst:Executable>

@@ -34,6 +34,9 @@ try
     #------------------------------------------
     # Install windows features + cmdlet module
     #------------------------------------------
+    Log "Installing RSAT AD Tools.."
+    Install-WindowsFeature RSAT-AD-Tools -IncludeAllSubFeature -IncludeManagementTools
+
     Log "Installing NetworkController Role.."
     Add-WindowsFeature -Name NetworkController -IncludeManagementTools
 

@@ -47,7 +47,8 @@ function DownloadFile()
 {
     param(
     [parameter(Mandatory = $true)] $Url,
-    [parameter(Mandatory = $true)] $Destination
+    [parameter(Mandatory = $true)] $Destination,
+    [parameter(Mandatory = $false)] $proxy
     )
 
     if (Test-Path $Destination)
@@ -67,12 +68,26 @@ function DownloadFile()
     } 
     [System.Net.ServicePointManager]::SecurityProtocol = $secureProtocols
     
-    try {
-        (New-Object System.Net.WebClient).DownloadFile($Url,$Destination)
-        Write-Host "Downloaded $Url=>$Destination"
-    } catch {
-        Write-Error "Failed to download $Url"
-	    throw
+    if($proxy){
+        try {
+            $WebClient = New-Object System.Net.WebClient
+            $WebProxy = New-Object System.Net.WebProxy($proxy,$true)
+            $WebClient.Proxy = $WebProxy
+            $WebClient.DownloadFile($Url,$Destination)
+            Write-Host "Downloaded $Url=>$Destination"
+        } catch {
+            Write-Error "Failed to download $Url"
+            throw
+        }
+    }
+    else{
+        try {
+            (New-Object System.Net.WebClient).DownloadFile($Url,$Destination)
+            Write-Host "Downloaded $Url=>$Destination"
+        } catch {
+            Write-Error "Failed to download $Url"
+            throw
+        }
     }
 }
 

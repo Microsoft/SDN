@@ -280,7 +280,7 @@ if ($OutputLevel -eq 2)
 $ScriptBlock = {
     param($RemoteIpAddress, $PathToDiskspd, $TargetFileName) 
     cd $PathToDiskspd
-    .\diskspd.exe -b4K -c10G -t4 -o16 -d100000 -L -Sr -d30 $TargetFileName
+    .\diskspd.exe -b1M -c2M -d30 -ft -L -o32 -r -Sr -t8 -w0 $TargetFileName
 }
       
 $thisJob = Start-Job $ScriptBlock -ArgumentList $RemoteIpAddress,$PathToDiskspd,$TargetFileName

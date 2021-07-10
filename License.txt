@@ -1,4 +1,4 @@
-SDN Sample Scripts  v.1.0
+SDN PlatformaxCloud Scripts  v.1.0
 
 Copyright (c) Microsoft Corporation
 

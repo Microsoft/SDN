@@ -19,6 +19,7 @@
     #ManagmentSubnet, ManagementGateway, and ManagementDNS are not required if DHCP is configured for the management adapters below.
     ManagementSubnet     = '10.127.132.128/25'
     ManagementGateway    = '10.127.132.129'
+    #ManagementDNS property requires an array, so use @('10.127.130.7') if you want to specify only one DNS server address
     ManagementDNS        = @('10.127.130.7', '10.127.130.8')
     #Use 0, or comment out ManagementVLANID to configure the management adapter for untagged traffic 
     ManagementVLANID     = 7

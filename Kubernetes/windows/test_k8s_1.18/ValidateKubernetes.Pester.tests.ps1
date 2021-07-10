@@ -117,13 +117,10 @@ Describe 'Basic Connectivity Tests' {
             }
         } 
         It 'Remote host Should be able to access Node port' {
-            foreach ($container1 in $localContainers)
-            {
                 foreach ($container2 in $remoteContainers)
                 {
                     TestConnectivity -remoteHost $container2.HostIP -port $nodePort -fromHost
                 }
-            }
         }
         '''
         # LocalRoutedVip

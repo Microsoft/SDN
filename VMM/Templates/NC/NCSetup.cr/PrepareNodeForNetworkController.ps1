@@ -36,6 +36,7 @@ try
     #------------------------------------------
     Log "Installing NetworkController Role.."
     Add-WindowsFeature -Name NetworkController -IncludeManagementTools
+    Add-WindowsFeature RSAT-AD-PowerShell
 
     #------------------------------------------
     # Add the domain account as local admin on this machine

@@ -46,22 +46,6 @@ Get-hnspolicylist | Convertto-json -Depth 20 > policy.txt
 vfpctrl.exe /list-vmswitch-port > ports.txt
 powershell $BaseDir\dumpVfpPolicies.ps1 -switchName $Network -outfile vfpOutput.txt
 
-# Loop through ports.txt file
-$ports = @()
-foreach($line in (Get-Content ports.txt)){
-    $nline = $line.Split(":")
-    if ($nline[0].contains('Port name'))
-    {
-        $ports += $nline[1]
-    }
-}
-
-# For each port, we want to call get-port-counter
-foreach($port in $ports)
-{
-    "Get-port-counter for port: $port" >> ports.txt
-    vfpctrl /port $port.trim() /get-port-counter >> ports.txt
-}
 ipconfig /allcompartments /all > ip.txt
 Get-NetIPAddress -IncludeAllCompartments >> ip.txt
 Get-NetIPInterface -IncludeAllCompartments >> ip.txt

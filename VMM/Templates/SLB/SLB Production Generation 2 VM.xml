@@ -166,8 +166,8 @@
       </ovf:VirtualHardwareSection>
       <ovf:OperatingSystemSection ovf:id="0">
         <ovf:Info>Guest operating system</ovf:Info>
-        <!--64-bit edition of Windows Server 2012 Standard-->
-        <vmmst:OperatingSystemId>6d5fa36c8f2a4a9dae8fbab30f9694f9</vmmst:OperatingSystemId>
+        <!--Windows Server 2016 Datacenter-->
+        <vmmst:OperatingSystemId>0a393d1e905041428e55a86e4a555013</vmmst:OperatingSystemId>
       </ovf:OperatingSystemSection>
       <ovf:Section xsi:type="vmmst:ApplicationSection_Type">
         <ovf:Info>Applications deployed on virtual machine</ovf:Info>

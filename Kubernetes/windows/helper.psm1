@@ -338,7 +338,11 @@ function Get-MgmtSubnet
       throw "Failed to find a suitable network adapter, check your network settings."
     }
     $addr = (Get-NetIPAddress -InterfaceAlias $na.ifAlias -AddressFamily IPv4).IPAddress
-    $mask = (Get-WmiObject Win32_NetworkAdapterConfiguration | ? InterfaceIndex -eq $($na.ifIndex)).IPSubnet[0]
+    $guid = (Get-NetAdapter | ? InterfaceIndex -eq $($ip.InterfaceIndex)).InterfaceGuid
+    $regPath = 'HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\' + $guid
+    $regContent = (Get-Item -Path $regPath)
+    $subnetProperty = $regContent.GetValueNames() -like "*subnetMask"
+    $mask = $regContent.GetValue($subnetProperty)
     $mgmtSubnet = (ConvertTo-DecimalIP $addr) -band (ConvertTo-DecimalIP $mask)
     $mgmtSubnet = ConvertTo-DottedDecimalIP $mgmtSubnet
     return "$mgmtSubnet/$(ConvertTo-MaskLength $mask)"
